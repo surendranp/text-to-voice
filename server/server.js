@@ -16,7 +16,7 @@ app.use("/output", express.static(path.join(__dirname, "output")));
 
 // Serve TTS.html when accessing the root route
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, "../public", "TTS.html"));  // Serve TTS.html
+    res.sendFile(path.join(__dirname, "../public", "index.html"));  // Serve TTS.html
 });
 
 // Endpoint to handle TTS conversion
