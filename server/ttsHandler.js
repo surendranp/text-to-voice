@@ -3,25 +3,24 @@ const path = require("path");
 const axios = require("axios");
 const { exec } = require("child_process");
 
-const CHUNK_SIZE = 200; // Maximum characters per API call
+const CHUNK_SIZE = 200; // Maximum characters per chunk
 
-// Define supported language mappings
 const LANGUAGE_MAP = {
-    en: "en", // English
-    es: "es", // Spanish
-    fr: "fr", // French
-    hi: "hi", // Hindi
-    ta: "ta", // Tamil
-    te: "te", // Telugu
-    kn: "kn", // Kannada
-    gu: "gu", // Gujarati
-    bn: "bn", // Bengali
-    ml: "ml", // Malayalam
-    mr: "mr", // Marathi
+    en: "en",
+    es: "es",
+    fr: "fr",
+    hi: "hi",
+    ta: "ta",
+    te: "te",
+    kn: "kn",
+    gu: "gu",
+    bn: "bn",
+    ml: "ml",
+    mr: "mr",
 };
 
 /**
- * Splits a long text into valid-sized chunks for the API.
+ * Split long text into chunks of manageable size.
  */
 function splitTextIntoChunks(text, size) {
     const chunks = [];
@@ -32,67 +31,52 @@ function splitTextIntoChunks(text, size) {
 }
 
 /**
- * Converts text to speech and saves it as an MP3 file.
+ * Convert text to speech and save as an MP3 file.
  */
 async function convertTextToSpeech(text, voice = "en", outputDir) {
-    // Validate the language code
     const languageCode = LANGUAGE_MAP[voice];
     if (!languageCode) {
-        throw new Error(
-            `Unsupported language code: ${voice}. Supported languages are: ${Object.keys(
-                LANGUAGE_MAP
-            ).join(", ")}`
-        );
+        throw new Error(`Unsupported language: ${voice}`);
     }
 
     const chunks = splitTextIntoChunks(text, CHUNK_SIZE);
     const tempFiles = [];
 
     for (let i = 0; i < chunks.length; i++) {
-        const chunk = chunks[i].trim();
+        const chunk = chunks[i];
         const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(
             chunk
         )}&tl=${languageCode}&client=tw-ob`;
 
         try {
-            // Make the TTS API request
-            const response = await axios({
-                method: "GET",
-                url,
-                responseType: "stream",
-            });
-
-            const tempFilename = `temp_${Date.now()}_${i}.mp3`;
-            const tempFilepath = path.join(outputDir, tempFilename);
+            const response = await axios.get(url, { responseType: "stream" });
+            const tempFile = path.join(outputDir, `temp_${Date.now()}_${i}.mp3`);
+            const writer = fs.createWriteStream(tempFile);
 
             await new Promise((resolve, reject) => {
-                const writer = fs.createWriteStream(tempFilepath);
                 response.data.pipe(writer);
                 writer.on("finish", resolve);
                 writer.on("error", reject);
             });
 
-            tempFiles.push(tempFilepath);
+            tempFiles.push(tempFile);
         } catch (error) {
-            console.error(`Failed to fetch chunk ${i + 1}:`, error.message);
-            throw new Error(`Error with chunk ${i + 1}: ${error.message}`);
+            console.error(`Failed to fetch chunk ${i + 1}: ${error.message}`);
+            throw error;
         }
     }
 
-    // Merge all temporary files into a single MP3
     const outputFilename = `audio_${Date.now()}.mp3`;
-    const outputFilepath = path.join(outputDir, outputFilename);
+    const outputFilePath = path.join(outputDir, outputFilename);
 
-    await mergeAudioFiles(tempFiles, outputFilepath);
-
-    // Clean up temporary files
-    tempFiles.forEach((file) => fs.unlinkSync(file));
+    await mergeAudioFiles(tempFiles, outputFilePath);
+    tempFiles.forEach((file) => fs.unlinkSync(file)); // Cleanup temp files
 
     return outputFilename;
 }
 
 /**
- * Merges multiple audio files into a single MP3 file using FFmpeg.
+ * Merge multiple audio files into one using FFmpeg.
  */
 function mergeAudioFiles(inputFiles, outputFile) {
     return new Promise((resolve, reject) => {
@@ -102,10 +86,13 @@ function mergeAudioFiles(inputFiles, outputFile) {
             inputFiles.map((file) => `file '${file}'`).join("\n")
         );
 
-        const ffmpegCommand = `ffmpeg -f concat -safe 0 -i ${fileListPath} -c copy ${outputFile}`;
-        exec(ffmpegCommand, (error) => {
-            fs.unlinkSync(fileListPath); // Remove temporary file list
-            if (error) return reject(error);
+        const command = `ffmpeg -f concat -safe 0 -i ${fileListPath} -c copy ${outputFile}`;
+        exec(command, (error, stdout, stderr) => {
+            fs.unlinkSync(fileListPath);
+            if (error) {
+                console.error("FFmpeg error:", stderr);
+                return reject(new Error("Failed to merge audio files."));
+            }
             resolve();
         });
     });
