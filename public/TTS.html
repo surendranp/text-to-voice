@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text-to-Speech App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Text-to-Speech Converter</h1>
+        <textarea id="textInput" placeholder="Enter your text here..."></textarea>
+        <p id="wordCount">Word Count: 0</p> <!-- Dynamic word count display -->
+        <select id="voiceSelect">
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="hi">Hindi</option>
+            <option value="ta">Tamil</option>
+            <option value="te">Telugu</option>
+            <option value="kn">Kannada</option>
+            <option value="ml">Malayalam</option>
+            <option value="mr">Marathi</option>
+            <option value="gu">Gujarati</option>
+            <option value="bn">Bengali</option>
+            <option value="pa">Punjabi</option>
+            <option value="or">Odia</option>
+            <option value="ur">Urdu</option>
+        </select>
+        <button id="convertButton">Convert</button>
+        <div id="downloadLink" style="display: none;">
+            <a id="audioLink" href="#" download>Download Audio</a>
+        </div>
+         <!-- Audio preview element -->
+         <audio id="audioPlayer" controls style="display: none; margin-top: 10px;">
+            Your browser does not support the audio element.
+        </audio>
+    </div>
+    <script src="./script.js"></script>
+</body>
+</html>
