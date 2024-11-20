@@ -40,6 +40,7 @@
         <h1>Text-to-Speech Converter</h1>
         <textarea id="textInput" placeholder="Enter your text here..."></textarea>
         <p id="wordCount">Word Count: 0</p> <!-- Dynamic word count display -->
+        <label>select language for text to speech</label>
         <select id="voiceSelect">
             <option value="en">English</option>
             <option value="es">Spanish</option>
@@ -47,14 +48,16 @@
             <option value="hi">Hindi</option>
             <option value="ta">Tamil</option>
         </select>
-        <label for="translateCheckbox">Translate?</label>
-        <input type="checkbox" id="translateCheckbox">
-        <select id="languageSelect" style="display: none;">
-            <option value="es">Spanish</option>
-            <option value="fr">French</option>
-            <option value="hi">Hindi</option>
-            <!-- Add other languages here -->
+        <label>select language for translate</label>
+        <select id="translateSelect">
+            <option value="">No Translation</option>
+            <option value="en">Translate to English</option>
+            <option value="es">Translate to Spanish</option>
+            <option value="fr">Translate to French</option>
+            <option value="hi">Translate to Hindi</option>
+            <option value="ta">Translate to Tamil</option>
         </select>
+        
         <button id="convertButton">Convert</button>
         <div id="downloadLink" style="display: none;">
             <a id="audioLink" href="#" download>Download Audio</a>

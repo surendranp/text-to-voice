@@ -17,8 +17,7 @@ textInput.addEventListener("paste", () => {
 document.getElementById("convertButton").addEventListener("click", async () => {
     const text = textInput.value;
     const voice = document.getElementById("voiceSelect").value;
-    const translate = document.getElementById("translateCheckbox").checked;
-    const targetLanguage = document.getElementById("languageSelect").value;
+    const translateTo = document.getElementById("translateSelect").value; // Added translation selection
 
     // Check if text is provided
     if (!text.trim()) {
@@ -37,7 +36,7 @@ document.getElementById("convertButton").addEventListener("click", async () => {
         const response = await fetch("/convert", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text, voice, translate, targetLanguage }),
+            body: JSON.stringify({ text, voice, translateTo }),
         });
 
         const result = await response.json();
@@ -53,14 +52,18 @@ document.getElementById("convertButton").addEventListener("click", async () => {
 
                 // Display download link and audio preview
                 document.getElementById("downloadLink").style.display = "block";
+                const audioPlayer = document.getElementById("audioPlayer");
+                audioPlayer.src = filename;
+                audioPlayer.style.display = "block";
+                audioPlayer.play(); // Auto-play the audio
             } else {
-                alert("Audio conversion failed.");
+                alert("Failed to retrieve the filename.");
             }
         } else {
-            alert(result.message);
+            alert("Failed to convert text to speech. Please try again.");
         }
     } catch (error) {
-        console.error("Error during conversion:", error);
-        alert("An error occurred during conversion.");
+        console.error(error);
+        alert("An error occurred. Please try again.");
     }
 });

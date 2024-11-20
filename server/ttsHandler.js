@@ -20,24 +20,22 @@ const LANGUAGE_MAP = {
     mr: "mr", // Marathi
 };
 
-// Google Translate API key (you need to have a Google API key for translation)
-const GOOGLE_TRANSLATE_API_KEY = process.env.GOOGLE_TRANSLATE_API_KEY;
-
-// Function to translate text to the selected language
+/**
+ * Translates text to the target language using Google Translate API.
+ */
 async function translateText(text, targetLanguage) {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLanguage}&dt=t&q=${encodeURIComponent(
+        text
+    )}`;
     try {
-        const response = await axios.post(
-            `https://translation.googleapis.com/language/translate/v2`,
-            {
-                q: text,
-                target: targetLanguage,
-                key: GOOGLE_TRANSLATE_API_KEY
-            }
-        );
-        return response.data.data.translations[0].translatedText;
+        const response = await axios.get(url);
+        const translatedText = response.data[0]
+            .map((item) => item[0])
+            .join("");
+        return translatedText;
     } catch (error) {
-        console.error("Error during translation:", error.message);
-        throw new Error("Translation failed.");
+        console.error("Translation error:", error.message);
+        throw new Error("Failed to translate text.");
     }
 }
 
@@ -55,12 +53,8 @@ function splitTextIntoChunks(text, size) {
 /**
  * Converts text to speech and saves it as an MP3 file.
  */
-async function convertTextToSpeech(text, voice = "en", outputDir, shouldTranslate = false, targetLanguage = null) {
-    // If translation is required
-    if (shouldTranslate && targetLanguage) {
-        text = await translateText(text, targetLanguage);
-    }
-
+async function convertTextToSpeech(text, voice = "en", outputDir) {
+    // Validate the language code
     const languageCode = LANGUAGE_MAP[voice];
     if (!languageCode) {
         throw new Error(
@@ -80,6 +74,7 @@ async function convertTextToSpeech(text, voice = "en", outputDir, shouldTranslat
         )}&tl=${languageCode}&client=tw-ob`;
 
         try {
+            // Make the TTS API request
             const response = await axios({
                 method: "GET",
                 url,
@@ -103,11 +98,13 @@ async function convertTextToSpeech(text, voice = "en", outputDir, shouldTranslat
         }
     }
 
+    // Merge all temporary files into a single MP3
     const outputFilename = `audio_${Date.now()}.mp3`;
     const outputFilepath = path.join(outputDir, outputFilename);
 
     await mergeAudioFiles(tempFiles, outputFilepath);
 
+    // Clean up temporary files
     tempFiles.forEach((file) => fs.unlinkSync(file));
 
     return outputFilename;
@@ -126,11 +123,11 @@ function mergeAudioFiles(inputFiles, outputFile) {
 
         const ffmpegCommand = `ffmpeg -f concat -safe 0 -i ${fileListPath} -c copy ${outputFile}`;
         exec(ffmpegCommand, (error) => {
-            fs.unlinkSync(fileListPath);
+            fs.unlinkSync(fileListPath); // Remove temporary file list
             if (error) return reject(error);
             resolve();
         });
     });
 }
 
-module.exports = { convertTextToSpeech };
+module.exports = { convertTextToSpeech, translateText };

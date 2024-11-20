@@ -2,7 +2,7 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const bodyParser = require("body-parser");
-const { convertTextToSpeech } = require("./ttsHandler");
+const { convertTextToSpeech, translateText } = require("./ttsHandler");
 require("dotenv").config();
 
 const app = express();
@@ -20,7 +20,7 @@ app.get("/", (req, res) => {
 
 // Endpoint for text-to-speech conversion
 app.post("/convert", async (req, res) => {
-    const { text, voice, translate, targetLanguage } = req.body;
+    const { text, voice, translateTo } = req.body;
 
     if (!text || !text.trim()) {
         return res.status(400).json({ success: false, message: "Text is required." });
@@ -32,7 +32,14 @@ app.post("/convert", async (req, res) => {
     }
 
     try {
-        const filename = await convertTextToSpeech(text, voice, outputDir, translate, targetLanguage);
+        let finalText = text;
+
+        // Translate the text if a translation language is provided
+        if (translateTo) {
+            finalText = await translateText(text, translateTo);
+        }
+
+        const filename = await convertTextToSpeech(finalText, voice, outputDir);
         res.json({ success: true, filename: `/output/${filename}` });
     } catch (error) {
         console.error("Error during TTS conversion:", error);
