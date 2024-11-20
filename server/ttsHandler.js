@@ -12,12 +12,7 @@ const LANGUAGE_MAP = {
     fr: "fr", // French
     hi: "hi", // Hindi
     ta: "ta", // Tamil
-    te: "te", // Telugu
-    kn: "kn", // Kannada
-    gu: "gu", // Gujarati
-    bn: "bn", // Bengali
-    ml: "ml", // Malayalam
-    mr: "mr", // Marathi
+    
 };
 
 /**
