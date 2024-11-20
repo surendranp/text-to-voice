@@ -20,7 +20,7 @@ app.get("/", (req, res) => {
 
 // Endpoint for text-to-speech conversion
 app.post("/convert", async (req, res) => {
-    const { text, voice } = req.body;
+    const { text, voice, translate, targetLanguage } = req.body;
 
     if (!text || !text.trim()) {
         return res.status(400).json({ success: false, message: "Text is required." });
@@ -32,7 +32,7 @@ app.post("/convert", async (req, res) => {
     }
 
     try {
-        const filename = await convertTextToSpeech(text, voice, outputDir);
+        const filename = await convertTextToSpeech(text, voice, outputDir, translate, targetLanguage);
         res.json({ success: true, filename: `/output/${filename}` });
     } catch (error) {
         console.error("Error during TTS conversion:", error);

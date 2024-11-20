@@ -12,8 +12,34 @@ const LANGUAGE_MAP = {
     fr: "fr", // French
     hi: "hi", // Hindi
     ta: "ta", // Tamil
-    
+    te: "te", // Telugu
+    kn: "kn", // Kannada
+    gu: "gu", // Gujarati
+    bn: "bn", // Bengali
+    ml: "ml", // Malayalam
+    mr: "mr", // Marathi
 };
+
+// Google Translate API key (you need to have a Google API key for translation)
+const GOOGLE_TRANSLATE_API_KEY = process.env.GOOGLE_TRANSLATE_API_KEY;
+
+// Function to translate text to the selected language
+async function translateText(text, targetLanguage) {
+    try {
+        const response = await axios.post(
+            `https://translation.googleapis.com/language/translate/v2`,
+            {
+                q: text,
+                target: targetLanguage,
+                key: GOOGLE_TRANSLATE_API_KEY
+            }
+        );
+        return response.data.data.translations[0].translatedText;
+    } catch (error) {
+        console.error("Error during translation:", error.message);
+        throw new Error("Translation failed.");
+    }
+}
 
 /**
  * Splits a long text into valid-sized chunks for the API.
@@ -29,8 +55,12 @@ function splitTextIntoChunks(text, size) {
 /**
  * Converts text to speech and saves it as an MP3 file.
  */
-async function convertTextToSpeech(text, voice = "en", outputDir) {
-    // Validate the language code
+async function convertTextToSpeech(text, voice = "en", outputDir, shouldTranslate = false, targetLanguage = null) {
+    // If translation is required
+    if (shouldTranslate && targetLanguage) {
+        text = await translateText(text, targetLanguage);
+    }
+
     const languageCode = LANGUAGE_MAP[voice];
     if (!languageCode) {
         throw new Error(
@@ -50,7 +80,6 @@ async function convertTextToSpeech(text, voice = "en", outputDir) {
         )}&tl=${languageCode}&client=tw-ob`;
 
         try {
-            // Make the TTS API request
             const response = await axios({
                 method: "GET",
                 url,
@@ -74,13 +103,11 @@ async function convertTextToSpeech(text, voice = "en", outputDir) {
         }
     }
 
-    // Merge all temporary files into a single MP3
     const outputFilename = `audio_${Date.now()}.mp3`;
     const outputFilepath = path.join(outputDir, outputFilename);
 
     await mergeAudioFiles(tempFiles, outputFilepath);
 
-    // Clean up temporary files
     tempFiles.forEach((file) => fs.unlinkSync(file));
 
     return outputFilename;
@@ -99,7 +126,7 @@ function mergeAudioFiles(inputFiles, outputFile) {
 
         const ffmpegCommand = `ffmpeg -f concat -safe 0 -i ${fileListPath} -c copy ${outputFile}`;
         exec(ffmpegCommand, (error) => {
-            fs.unlinkSync(fileListPath); // Remove temporary file list
+            fs.unlinkSync(fileListPath);
             if (error) return reject(error);
             resolve();
         });
