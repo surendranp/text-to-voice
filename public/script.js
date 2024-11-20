@@ -1,68 +1,101 @@
-const textInput = document.getElementById("textInput");
-const wordCountDisplay = document.getElementById("wordCount");
+const fs = require("fs");
+const path = require("path");
+const axios = require("axios");
+const { exec } = require("child_process");
 
-// Function to calculate and update word count
-const updateWordCount = () => {
-    const text = textInput.value.trim();
-    const wordCount = text ? text.split(/\s+/).length : 0;
-    wordCountDisplay.textContent = `Word Count: ${wordCount}`;
+const CHUNK_SIZE = 200; // Maximum characters per chunk
+
+const LANGUAGE_MAP = {
+    en: "en",
+    es: "es",
+    fr: "fr",
+    hi: "hi",
+    ta: "ta",
+    te: "te",
+    kn: "kn",
+    gu: "gu",
+    bn: "bn",
+    ml: "ml",
+    mr: "mr",
 };
 
-// Update word count on input and paste events
-textInput.addEventListener("input", updateWordCount);
-textInput.addEventListener("paste", () => {
-    setTimeout(updateWordCount, 0); // Delay to ensure pasted content is included
-});
+/**
+ * Split long text into chunks of manageable size.
+ */
+function splitTextIntoChunks(text, size) {
+    const chunks = [];
+    for (let i = 0; i < text.length; i += size) {
+        chunks.push(text.slice(i, i + size));
+    }
+    return chunks;
+}
 
-document.getElementById("convertButton").addEventListener("click", async () => {
-    const text = textInput.value;
-    const voice = document.getElementById("voiceSelect").value;
-
-    // Check if text is provided
-    if (!text.trim()) {
-        alert("Please enter some text!");
-        return;
+/**
+ * Convert text to speech and save as an MP3 file.
+ */
+async function convertTextToSpeech(text, voice = "en", outputDir) {
+    const languageCode = LANGUAGE_MAP[voice];
+    if (!languageCode) {
+        throw new Error(`Unsupported language: ${voice}`);
     }
 
-    // Check if word count exceeds 1000
-    const wordCount = text.trim().split(/\s+/).length;
-    if (wordCount > 1000) {
-        alert("Please enter below 1000 words.");
-        return;
-    }
+    const chunks = splitTextIntoChunks(text, CHUNK_SIZE);
+    const tempFiles = [];
 
-    try {
-        const response = await fetch("/convert", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text, voice }),
-        });
+    for (let i = 0; i < chunks.length; i++) {
+        const chunk = chunks[i];
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(
+            chunk
+        )}&tl=${languageCode}&client=tw-ob`;
 
-        const result = await response.json();
+        try {
+            const response = await axios.get(url, { responseType: "stream" });
+            const tempFile = path.join(outputDir, `temp_${Date.now()}_${i}.mp3`);
+            const writer = fs.createWriteStream(tempFile);
 
-        if (result.success) {
-            const audioLink = document.getElementById("audioLink");
-            const filename = result.filename;
+            await new Promise((resolve, reject) => {
+                response.data.pipe(writer);
+                writer.on("finish", resolve);
+                writer.on("error", reject);
+            });
 
-            if (filename) {
-                // Update download link
-                audioLink.href = filename;
-                audioLink.download = filename.split('/').pop();
-
-                // Display download link and audio preview
-                document.getElementById("downloadLink").style.display = "block";
-                const audioPlayer = document.getElementById("audioPlayer");
-                audioPlayer.src = filename;
-                audioPlayer.style.display = "block";
-                audioPlayer.play(); // Auto-play the audio
-            } else {
-                alert("Failed to retrieve the filename.");
-            }
-        } else {
-            alert("Failed to convert text to speech. Please try again.");
+            tempFiles.push(tempFile);
+        } catch (error) {
+            console.error(`Failed to fetch chunk ${i + 1}: ${error.message}`);
+            throw error;
         }
-    } catch (error) {
-        console.error(error);
-        alert("An error occurred. Please try again.");
     }
-});
+
+    const outputFilename = `audio_${Date.now()}.mp3`;
+    const outputFilePath = path.join(outputDir, outputFilename);
+
+    await mergeAudioFiles(tempFiles, outputFilePath);
+    tempFiles.forEach((file) => fs.unlinkSync(file)); // Cleanup temp files
+
+    return outputFilename;
+}
+
+/**
+ * Merge multiple audio files into one using FFmpeg.
+ */
+function mergeAudioFiles(inputFiles, outputFile) {
+    return new Promise((resolve, reject) => {
+        const fileListPath = path.join(__dirname, "filelist.txt");
+        fs.writeFileSync(
+            fileListPath,
+            inputFiles.map((file) => `file '${file}'`).join("\n")
+        );
+
+        const command = `ffmpeg -f concat -safe 0 -i ${fileListPath} -c copy ${outputFile}`;
+        exec(command, (error, stdout, stderr) => {
+            fs.unlinkSync(fileListPath);
+            if (error) {
+                console.error("FFmpeg error:", stderr);
+                return reject(new Error("Failed to merge audio files."));
+            }
+            resolve();
+        });
+    });
+}
+
+module.exports = { convertTextToSpeech };

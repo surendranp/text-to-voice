@@ -1,18 +1,21 @@
 {
   "name": "tts-app",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "A text-to-speech application",
+  "main": "server.js",
   "scripts": {
+    "start": "node server/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "axios": "^1.7.7",
     "body-parser": "^1.20.3",
+    "dotenv": "^16.4.5",
     "express": "^4.21.1",
+    "ffmpeg-static": "^5.2.0",
     "fluent-ffmpeg": "^2.1.3"
   }
 }
