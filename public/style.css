@@ -2,9 +2,9 @@ body {
     font-family: Arial, sans-serif;
     text-align: center;
     padding: 20px;
-    background-image: url('./images/banner-images.jpg');
+    /* background-image: url('./images/banner-images.jpg');
     background-size: cover;
-    background-repeat: no-repeat;
+    background-repeat: no-repeat; */
 }
 
 .container {
