@@ -17,7 +17,7 @@ textInput.addEventListener("paste", () => {
 document.getElementById("convertButton").addEventListener("click", async () => {
     const text = textInput.value;
     const voice = document.getElementById("voiceSelect").value;
-    const translateTo = document.getElementById("translateSelect").value; // Added translation selection
+    const translateTo = document.getElementById("translateSelect").value;
 
     // Check if text is provided
     if (!text.trim()) {
@@ -31,6 +31,9 @@ document.getElementById("convertButton").addEventListener("click", async () => {
         alert("Please enter below 1000 words.");
         return;
     }
+
+    const spinner = document.getElementById("spinner");
+    spinner.style.display = "flex"; // Show spinner
 
     try {
         const response = await fetch("/convert", {
@@ -48,7 +51,7 @@ document.getElementById("convertButton").addEventListener("click", async () => {
             if (filename) {
                 // Update download link
                 audioLink.href = filename;
-                audioLink.download = filename.split('/').pop();
+                audioLink.download = filename.split("/").pop();
 
                 // Display download link and audio preview
                 document.getElementById("downloadLink").style.display = "block";
@@ -65,5 +68,7 @@ document.getElementById("convertButton").addEventListener("click", async () => {
     } catch (error) {
         console.error(error);
         alert("An error occurred. Please try again.");
+    } finally {
+        spinner.style.display = "none"; // Hide spinner
     }
 });
