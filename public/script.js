@@ -32,8 +32,9 @@ document.getElementById("convertButton").addEventListener("click", async () => {
         return;
     }
 
+    // Show spinner
     const spinner = document.getElementById("spinner");
-    spinner.style.display = "flex"; // Show spinner
+    spinner.style.display = "flex"; // Display spinner
 
     try {
         const response = await fetch("/convert", {
@@ -69,6 +70,7 @@ document.getElementById("convertButton").addEventListener("click", async () => {
         console.error(error);
         alert("An error occurred. Please try again.");
     } finally {
+        // Hide spinner
         spinner.style.display = "none"; // Hide spinner
     }
 });
