@@ -19,22 +19,19 @@ document.getElementById("convertButton").addEventListener("click", async () => {
     const voice = document.getElementById("voiceSelect").value;
     const translateTo = document.getElementById("translateSelect").value;
 
-    // Check if text is provided
     if (!text.trim()) {
         alert("Please enter some text!");
         return;
     }
 
-    // Check if word count exceeds 1000
     const wordCount = text.trim().split(/\s+/).length;
     if (wordCount > 1000) {
         alert("Please enter below 1000 words.");
         return;
     }
 
-    // Show spinner
-    const spinner = document.getElementById("spinner");
-    spinner.style.display = "flex"; // Display spinner
+    const spinnerContainer = document.getElementById("spinner-container");
+    spinnerContainer.style.display = "flex"; // Show spinner
 
     try {
         const response = await fetch("/convert", {
@@ -46,20 +43,19 @@ document.getElementById("convertButton").addEventListener("click", async () => {
         const result = await response.json();
 
         if (result.success) {
-            const audioLink = document.getElementById("audioLink");
             const filename = result.filename;
 
             if (filename) {
-                // Update download link
+                const audioLink = document.getElementById("audioLink");
                 audioLink.href = filename;
                 audioLink.download = filename.split("/").pop();
 
-                // Display download link and audio preview
                 document.getElementById("downloadLink").style.display = "block";
+
                 const audioPlayer = document.getElementById("audioPlayer");
                 audioPlayer.src = filename;
                 audioPlayer.style.display = "block";
-                audioPlayer.play(); // Auto-play the audio
+                audioPlayer.play();
             } else {
                 alert("Failed to retrieve the filename.");
             }
@@ -70,7 +66,7 @@ document.getElementById("convertButton").addEventListener("click", async () => {
         console.error(error);
         alert("An error occurred. Please try again.");
     } finally {
-        // Hide spinner
-        spinner.style.display = "none"; // Hide spinner
+        spinnerContainer.style.display = "none"; // Hide spinner
     }
 });
+
