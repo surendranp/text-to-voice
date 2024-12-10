@@ -39,18 +39,23 @@
         </div>
     </div>
 </nav>
+<div class="container d-flex mt-0 bg-danger">
     <div class="container">
         <h1>Text-to-Speech Converter</h1>
         <textarea id="textInput" placeholder="Enter your text here..."></textarea>
         <p id="wordCount">Word Count: 0</p> <!-- Dynamic word count display -->
         <label>select Voice</label>
         <select id="voiceSelect">
+            <!-- For English -->
+            <option value="">No Translation</option>
             <option value="en">English</option>
             <option value="es">Spanish</option>
             <option value="fr">French</option>
             <option value="hi">Hindi</option>
             <option value="ta">Tamil</option>
             <option value="ml">Malayalam</option>
+        
+            <!-- Additional languages can be added similarly -->
         </select>
         <label>select language for translate</label>
         <select id="translateSelect">
@@ -60,9 +65,18 @@
             <option value="fr">Translate to French</option>
             <option value="hi">Translate to Hindi</option>
             <option value="ta">Translate to Tamil</option>
-            <option value="ml">Malayalam</option>
+            <option value="ml"> Translate to Malayalam</option>
         </select>
-        
+        <label>Select ElevenLabs Voice</label>
+        <select id="elevenLabsVoiceSelect">
+            <option value="">No Voice</option>
+            <option value="21m00Tcm4TlvDq8ikWAM">Rachel (US Female)</option>
+            <option value="onwK4e9ZLuTAKqWW03F9">Domi (US Male)</option>
+            <option value="pqHfZKP75CvOlQylNhV4">Bill (US Male)</option>
+            <option value="1XNFRxE3WBB7iI0jnm7p">tamil (TA FemaleMale)</option>
+            <option value="ZhJ5LanYnCmLKQUXvsV7">tamil-2 (TA Male)</option>
+        </select>
+
         <button id="convertButton" class=" convert text-light">Convert</button>
         <div id="downloadLink" style="display: none;">
             <a id="audioLink" href="#" download>Download Audio</a>
@@ -72,6 +86,24 @@
             Your browser does not support the audio element.
         </audio>
     </div>
+    <div class="container">
+    <div>
+        <label for="speed">Speed: </label>
+        <input type="range" id="speed" min="-100" max="100" step="1" value="1">
+        <span id="speedValue">1</span>
+    </div>
+    <div>
+        <label for="pitch">Pitch: </label>
+        <input type="range" id="pitch" min="-100" max="100" step="1" value="1">
+        <span id="pitchValue">0</span>
+    </div>
+    <div>
+        <label for="volume">Volume: </label>
+        <input type="range" id="volume" min="0" max="100" step="1" value="1">
+        <span id="volumeValue">1</span>
+    </div>
+</div>
+</div>
     <div id="spinner-container" class="spinner-container" style="display: none;">
         <div class="spinner"></div>
         <p class="text-light"><span class="text-light me-5 pl-5 mt-4 pt-5">Processing...</span></p>

@@ -18,6 +18,7 @@ document.getElementById("convertButton").addEventListener("click", async () => {
     const text = textInput.value;
     const voice = document.getElementById("voiceSelect").value;
     const translateTo = document.getElementById("translateSelect").value;
+    const elevenLabsVoice = document.getElementById("elevenLabsVoiceSelect").value;
 
     if (!text.trim()) {
         alert("Please enter some text!");
@@ -34,11 +35,20 @@ document.getElementById("convertButton").addEventListener("click", async () => {
     spinnerContainer.style.display = "flex"; // Show spinner
 
     try {
-        const response = await fetch("/convert", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text, voice, translateTo }),
-        });
+        let response;
+        if (elevenLabsVoice) {
+            response = await fetch("/convert-elevenlabs", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text, voice: elevenLabsVoice }),
+            });
+        } else {
+            response = await fetch("/convert", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text, voice, translateTo }),
+            });
+        }
 
         const result = await response.json();
 
@@ -69,4 +79,3 @@ document.getElementById("convertButton").addEventListener("click", async () => {
         spinnerContainer.style.display = "none"; // Hide spinner
     }
 });
-

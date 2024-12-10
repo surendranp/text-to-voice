@@ -1,37 +1,40 @@
-const fs = require("fs");
-const fetch = require("node-fetch");
+const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
+const { API_KEY } = process.env;  // Ensure your API key is set correctly in the .env
 
-async function generateVoice(text, voice, translateTo, pitch, speed, accent) {
-    const apiKey = process.env.ELEVEN_LABS_API_KEY;
-    const url = `https://api.elevenlabs.io/v1/text-to-speech/${voice}`;
+// Function to generate audio with pitch and speed adjustments
+async function generateAudioWithSettings(text, voice, pitch, speed, outputDir) {
+    const url = 'https://api.elevenlabs.io/v1/text-to-speech';  // Update with the actual endpoint URL if needed
 
-    const requestBody = {
-        text,
-        voice_settings: {
-            pitch: parseFloat(pitch),
-            speed: parseFloat(speed),
-        },
-        accent,
-    };
+    try {
+        // Send the request to Eleven Labs TTS API
+        const response = await axios.post(url, {
+            text: text,
+            voice: voice,
+            params: {
+                pitch: pitch || 1.0,   // Default to 1.0 if no pitch is provided
+                speed: speed || 1.0,    // Default to 1.0 if no speed is provided
+            }
+        }, {
+            headers: {
+                'Authorization': `Bearer ${API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            responseType: 'arraybuffer'  // To handle binary audio data
+        });
 
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify(requestBody),
-    });
+        // Save the audio file to the output directory
+        const audioBuffer = response.data;
+        const filePath = path.join(outputDir, `${Date.now()}.mp3`);
+        fs.writeFileSync(filePath, audioBuffer);
 
-    if (!response.ok) {
-        throw new Error("Failed to generate voice.");
+        return filePath;  // Return the path of the generated audio file
+
+    } catch (error) {
+        console.error("Error generating audio with Eleven Labs API:", error);
+        throw error;
     }
-
-    const buffer = await response.buffer();
-    const filePath = `./output/${Date.now()}_output.mp3`;
-    fs.writeFileSync(filePath, buffer);
-
-    return filePath;
 }
 
-module.exports = { generateVoice };
+module.exports = { generateAudioWithSettings };

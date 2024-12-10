@@ -53,14 +53,11 @@ function splitTextIntoChunks(text, size) {
 /**
  * Converts text to speech and saves it as an MP3 file.
  */
-async function convertTextToSpeech(text, voice = "en", outputDir) {
-    // Validate the language code
+async function convertTextToSpeech(text, voice = "en", outputDir, pitch = 100, speed = 100) {
     const languageCode = LANGUAGE_MAP[voice];
     if (!languageCode) {
         throw new Error(
-            `Unsupported language code: ${voice}. Supported languages are: ${Object.keys(
-                LANGUAGE_MAP
-            ).join(", ")}`
+            `Unsupported language code: ${voice}. Supported languages are: ${Object.keys(LANGUAGE_MAP).join(", ")}`
         );
     }
 
@@ -69,12 +66,9 @@ async function convertTextToSpeech(text, voice = "en", outputDir) {
 
     for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i].trim();
-        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(
-            chunk
-        )}&tl=${languageCode}&client=tw-ob`;
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunk)}&tl=${languageCode}&client=tw-ob&pitch=${pitch}&speed=${speed}`;
 
         try {
-            // Make the TTS API request
             const response = await axios({
                 method: "GET",
                 url,
@@ -98,13 +92,11 @@ async function convertTextToSpeech(text, voice = "en", outputDir) {
         }
     }
 
-    // Merge all temporary files into a single MP3
     const outputFilename = `audio_${Date.now()}.mp3`;
     const outputFilepath = path.join(outputDir, outputFilename);
 
     await mergeAudioFiles(tempFiles, outputFilepath);
 
-    // Clean up temporary files
     tempFiles.forEach((file) => fs.unlinkSync(file));
 
     return outputFilename;
