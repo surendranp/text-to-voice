@@ -8,6 +8,7 @@ const CHUNK_SIZE = 200; // Maximum characters per API call
 // Define supported language mappings
 const LANGUAGE_MAP = {
     en: "en", // English
+    "en-male": "en",
     es: "es", // Spanish
     fr: "fr", // French
     hi: "hi", // Hindi
@@ -59,6 +60,11 @@ async function convertTextToSpeech(text, voice = "en", outputDir, pitch = 100, s
         throw new Error(
             `Unsupported language code: ${voice}. Supported languages are: ${Object.keys(LANGUAGE_MAP).join(", ")}`
         );
+    }
+
+    // Adjust pitch and speed for male voice
+    if (voice === "en-male") {
+        pitch = pitch - 30; // Lower the pitch for a male tone
     }
 
     const chunks = splitTextIntoChunks(text, CHUNK_SIZE);
