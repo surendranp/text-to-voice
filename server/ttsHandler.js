@@ -54,7 +54,7 @@ function splitTextIntoChunks(text, size) {
 /**
  * Converts text to speech and saves it as an MP3 file.
  */
-async function convertTextToSpeech(text, voice = "en", outputDir, pitch = 100, speed = 100) {
+async function convertTextToSpeech(text, voice = "en", outputDir, pitch = 1, speed = 1, volume = 1) {
     const languageCode = LANGUAGE_MAP[voice];
     if (!languageCode) {
         throw new Error(
@@ -62,17 +62,17 @@ async function convertTextToSpeech(text, voice = "en", outputDir, pitch = 100, s
         );
     }
 
-    // Adjust pitch and speed for male voice
-    if (voice === "en-male") {
-        pitch = pitch - 30; // Lower the pitch for a male tone
-    }
+    // Ensure pitch, speed, and volume are within acceptable ranges
+    const adjustedPitch = Math.max(-100, Math.min(100, pitch)); // Clamp to -100 to 100
+    const adjustedSpeed = Math.max(-100, Math.min(100, speed)); // Clamp to -100 to 100
+    const adjustedVolume = Math.max(0, Math.min(2, volume)); // Clamp volume between 0 (mute) and 2 (max)
 
     const chunks = splitTextIntoChunks(text, CHUNK_SIZE);
     const tempFiles = [];
 
     for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i].trim();
-        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunk)}&tl=${languageCode}&client=tw-ob&pitch=${pitch}&speed=${speed}`;
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunk)}&tl=${languageCode}&client=tw-ob&pitch=${adjustedPitch}&speed=${adjustedSpeed}&volume=${adjustedVolume}`;
 
         try {
             const response = await axios({

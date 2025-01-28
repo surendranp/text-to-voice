@@ -3,7 +3,9 @@ const fs = require("fs");
 const path = require("path");
 const bodyParser = require("body-parser");
 const axios = require("axios");
-require("dotenv").config();
+
+// Explicitly load the .env file from the root directory
+require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 
 const { convertTextToSpeech, translateText } = require("./ttsHandler");
 
@@ -11,7 +13,10 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 const ELEVEN_LABS_API_KEY = process.env.ELEVEN_LABS_API_KEY;
-const ELEVEN_LABS_URL = 'https://api.elevenlabs.io/v1/text-to-speech/';
+const ELEVEN_LABS_URL = "https://api.elevenlabs.io/v1/text-to-speech/";
+
+// Debugging: Log to confirm the API key is being loaded
+// console.log("Loaded Eleven Labs API Key:", ELEVEN_LABS_API_KEY ? "****" + ELEVEN_LABS_API_KEY.slice(-4) : "undefined");
 
 // Check if API key is loaded correctly
 if (!ELEVEN_LABS_API_KEY) {
@@ -29,6 +34,7 @@ app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "../public", "index.html"));
 });
 
+// Endpoint for text-to-speech conversion using Google Translate or custom voice
 // Endpoint for text-to-speech conversion using Google Translate or custom voice
 app.post("/convert", async (req, res) => {
     const { text, voice, translateTo, pitch, speed } = req.body;
@@ -49,6 +55,7 @@ app.post("/convert", async (req, res) => {
             finalText = await translateText(text, translateTo);
         }
 
+        // Ensure the pitch and speed values are passed to convertTextToSpeech
         const filename = await convertTextToSpeech(finalText, voice, outputDir, pitch, speed);
         res.json({ success: true, filename: `/output/${filename}` });
     } catch (error) {
@@ -75,16 +82,20 @@ app.post("/convert-elevenlabs", async (req, res) => {
     }
 
     try {
+        // Ensure speed, pitch, and volume are numbers and within the correct range
+        const validatedSpeed = parseFloat(speed) || 1;
+        const validatedPitch = parseFloat(pitch) || 0;
+        const validatedVolume = parseFloat(volume) || 1;
+
         // Prepare the payload with the voice settings
         const payload = {
             text: text,
             voice_settings: {
                 stability: 0.5,
                 similarity_boost: 0.5,
-                // Add custom adjustments for speed, pitch, and volume
-                rate: speed, // Adjust speed (rate)
-                pitch: pitch, // Adjust pitch
-                volume: volume // Adjust volume
+                rate: validatedSpeed,   // Adjust speed (rate)
+                pitch: validatedPitch,  // Adjust pitch
+                volume: validatedVolume  // Adjust volume
             }
         };
 
@@ -94,12 +105,12 @@ app.post("/convert-elevenlabs", async (req, res) => {
         };
 
         const apiUrl = `${ELEVEN_LABS_URL}${voice}`;
-        const response = await axios.post(apiUrl, payload, { headers, responseType: 'arraybuffer' });
+        const response = await axios.post(apiUrl, payload, { headers, responseType: "arraybuffer" });
 
         const filename = `audio_${Date.now()}.mp3`;
         const filePath = path.join(outputDir, filename);
 
-        // Write the audio file to disk (response is expected to be an arraybuffer)
+        // Write the audio file to disk
         fs.writeFile(filePath, response.data, (err) => {
             if (err) {
                 console.error("Error saving the audio file:", err);
@@ -117,5 +128,5 @@ app.post("/convert-elevenlabs", async (req, res) => {
 
 // Start the server
 app.listen(port, () => {
-    console.log(`Server is running on porthttp://localhost:${port}`);
+    console.log(`Server is running on http://localhost:${port}`);
 });
