@@ -44,10 +44,10 @@
         <h1>Text-to-Speech Converter</h1>
         <textarea id="textInput" placeholder="Enter your text here..."></textarea>
         <p id="wordCount">Word Count: 0</p> <!-- Dynamic word count display -->
-        <label>select Voice</label>
-        <select id="voiceSelect">
+        <label>select Slang</label>
+        <select id="voiceSelect" >
             <!-- For English -->
-            <option value="">No Translation</option>
+            <option value="" >No Translation</option>
             <option value="en">English</option>
             <option value="en-male">English (Male)</option>
             <option value="es">Spanish</option>
@@ -59,8 +59,8 @@
             <!-- Additional languages can be added similarly -->
         </select>
         <label>select language for translate</label>
-        <select id="translateSelect">
-            <option value="">No Translation</option>
+        <select id="translateSelect" >
+            <option value="" >No Translation</option>
             <option value="en">Translate to English</option>
             <option value="es">Translate to Spanish</option>
             <option value="fr">Translate to French</option>
@@ -69,23 +69,18 @@
             <option value="ml"> Translate to Malayalam</option>
         </select>
         <label>Select ElevenLabs Voice</label>
-        <select id="elevenLabsVoiceSelect">
+        <select id="elevenLabsVoiceSelect" >
             <option value="">No Voice</option>
             <option value="21m00Tcm4TlvDq8ikWAM">Rachel (US Female)</option>
             <option value="onwK4e9ZLuTAKqWW03F9">Domi (US Male)</option>
             <option value="pqHfZKP75CvOlQylNhV4">Bill (US Male)</option>
-            <option value="1XNFRxE3WBB7iI0jnm7p">tamil (TA FemaleMale)</option>
-            <option value="ZhJ5LanYnCmLKQUXvsV7">tamil-2 (TA Male)</option>
+            <!-- <option value="1XNFRxE3WBB7iI0jnm7p">tamil (TA FemaleMale)</option> -->
+            <!-- <option value="ZhJ5LanYnCmLKQUXvsV7">tamil-2 (TA Male)</option> -->
         </select>
 
         <button id="convertButton" class=" convert text-light">Convert</button>
-        <div id="downloadLink" style="display: none;">
-            <a id="audioLink" href="#" download>Download Audio</a>
-        </div>
-         <!-- Audio preview element -->
-         <audio id="audioPlayer" controls style="display: none; margin-top: 10px;">
-            Your browser does not support the audio element.
-        </audio>
+        
+
     </div>
     <div class="container">
     <div>
@@ -103,6 +98,13 @@
         <input type="range" id="volume" min="0" max="100" step="1" value="1">
         <span id="volumeValue">1</span>
     </div>
+    <div id="downloadLink" style="display: none;">
+        <a id="audioLink" href="#" download>Download Audio</a>
+    </div>
+             <!-- Audio preview element -->
+             <audio id="audioPlayer" controls style="display: none; margin-top: 10px;">
+                Your browser does not support the audio element.
+            </audio>
 </div>
 </div>
     <div id="spinner-container" class="spinner-container" style="display: none;">
